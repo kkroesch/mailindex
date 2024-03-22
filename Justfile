@@ -4,6 +4,7 @@ SOLR_BASE_URL := "http://bio:8983/solr/mail_archive"
 [confirm]
 import workdir:
     #!/bin/bash
+    set -euxo pipefail
     count=0
     find "{{MAIL_BASE_DIR}}/{{workdir}}" -name "*.mail*" |
     while read -r mail
