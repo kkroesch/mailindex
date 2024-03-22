@@ -1,0 +1,1 @@
+podman run --rm -d -v "/var/lib/solr:/var/solr" -p 8983:8983 --name solr docker.io/solr:latest
