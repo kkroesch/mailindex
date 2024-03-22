@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Template mit AngularJS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        .suchfeld-container {
+            padding-left: 1em;
+            position: relative;
+            width: 300px;
+        }
+        .suchfeld-input {
+            width: 100%;
+            padding: 10px;
+            padding-right: 40px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 20px;
+            box-sizing: border-box;
+        }
+        .suchfeld-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+            cursor: pointer;
+        }
+        .email-container {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .email-header, .email-body {
+            margin-bottom: 20px;
+        }
+        .email-footer {
+            font-size: 0.8em;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body ng-app="emailApp" ng-controller="EmailController as ctrl">
+
+    <div class="suchfeld-container">
+        <input type="text" ng-model="ctrl.suchText" ng-keyup="$event.keyCode == 13 && ctrl.startSearch()" class="suchfeld-input" placeholder="Suche...">
+        <i class="fas fa-search suchfeld-icon" ng-click="ctrl.startSearch()"></i>
+    </div>
+
+    <div class="email-container" ng-repeat="email in ctrl.emails">
+        <div class="email-header">
+            <strong>Von:</strong> {{email.from}}<br>
+            <strong>An:</strong> {{email.to}}<br>
+            <strong>Betreff:</strong> {{email.subject}}<br>
+            <strong>Datum:</strong> {{email['received.date'][0]}}
+        </div>
+        <div class="email-body" ng-bind-html="email.body | to_trusted"></div>
+        <div class="email-footer">{{email.footer}}</div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script>
+    angular.module('emailApp', [])
+    .controller('EmailController', function($scope, $http, $sce) {
+        var ctrl = this;
+
+        ctrl.startSearch = function() {
+            var solrUrl = 'http://127.0.0.1:5000/search?q='+ctrl.suchText.trim(); // Passe die URL entsprechend an
+            $http.get(solrUrl).then(function(response) {
+                ctrl.emails = response.data.response.docs
+
+                ctrl.emails.forEach((email) => {
+                    email.footer = 'Served by Apache Solr'
+                    email.from = email.from.join(" ")
+                    email.to = email.to.join(" ")
+                    email.subject = email.subject.join(" ")
+                    email.body = email.body[0]
+                })
+            }, function(error) {
+                console.error('Fehler beim Abrufen des Mail-Bodys:', error)
+            })
+        }
+    })
+    .filter('to_trusted', ['$sce', function($sce){
+        return function(text) {
+            return $sce.trustAsHtml(text)
+        }
+    }])    
+    .filter('join', ['$sce', function($sce){
+        return function(list) {
+            return list.join(" ")
+        }
+    }])    
+    </script>
+
+</body>
+</html>
