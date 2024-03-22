@@ -69,7 +69,7 @@
         var ctrl = this;
 
         ctrl.startSearch = function() {
-            var solrUrl = 'http://127.0.0.1:5000/search?q='+ctrl.suchText.trim(); // Passe die URL entsprechend an
+            var solrUrl = 'http://127.0.0.1:8080/search?q='+ctrl.suchText.trim(); // Passe die URL entsprechend an
             $http.get(solrUrl).then(function(response) {
                 ctrl.emails = response.data.response.docs
 

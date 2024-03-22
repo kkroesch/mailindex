@@ -1,12 +1,11 @@
 MAIL_BASE_DIR := "/Volumes/backup/karsten/mail"
-MAIL_WORK_DIR := "Sent/cur"
 SOLR_BASE_URL := "http://bio:8983/solr/mail_archive"
 
 [confirm]
-import:
+import workdir:
     #!/bin/bash
     count=0
-    find "{{MAIL_BASE_DIR}}/{{MAIL_WORK_DIR}}" -name "*.mail*" |
+    find "{{MAIL_BASE_DIR}}/{{workdir}}" -name "*.mail*" |
     while read -r mail
     do
         echo "Working on $mail"
@@ -43,13 +42,14 @@ serve:
 
     from flask import Flask, request, send_from_directory
     import requests
+    from os import getenv
 
     app = Flask(__name__)
 
     # Statische HTML-Datei ausliefern
     @app.route('/')
     def index():
-        return send_from_directory('.', 'mail.html')  # Stelle sicher, dass 'index.html' im gleichen Verzeichnis liegt
+        return send_from_directory(getenv('PWD'), 'mail.html')
 
     # Suchanfragen an Solr weiterleiten
     @app.route('/search')
@@ -60,4 +60,4 @@ serve:
         return response.json()  # Gibt die JSON-Antwort von Solr zurück
 
     if __name__ == '__main__':
-        app.run(debug=True)  # Startet den Server im Debug-Modus
+        app.run(debug=True, port=8080)  # Startet den Server im Debug-Modus
